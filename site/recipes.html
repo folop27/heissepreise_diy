@@ -1,0 +1,221 @@
+%%_templates/_header.html%% %%_templates/_menu.html%%
+
+<div class="w-full max-w-6xl relative px-4 flex-1">
+    <h1 class="text-2xl font-bold pb-2 pt-8 text-center">__Recipes_Title__</h1>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <section class="lg:col-span-1 bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+            <h2 class="text-lg font-semibold mb-3">__Recipes_SearchTitle__</h2>
+            <label class="block text-sm font-medium mb-2">__Recipes_QueryLabel__</label>
+            <input
+                x-id="query"
+                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                type="text"
+                placeholder="__Recipes_QueryPlaceholder__"
+            />
+
+            <div class="mt-4">
+                <div class="text-sm font-semibold mb-2">__Recipes_KcalRange__</div>
+                <div class="grid grid-cols-2 gap-2">
+                    <input
+                        x-id="kcalMin"
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm"
+                        type="number"
+                        min="0"
+                        placeholder="__Recipes_Min__"
+                    />
+                    <input
+                        x-id="kcalMax"
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm"
+                        type="number"
+                        min="0"
+                        placeholder="__Recipes_Max__"
+                    />
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <div class="text-sm font-semibold mb-2">__Recipes_Macros__</div>
+                <div class="grid grid-cols-2 gap-2">
+                    <input
+                        x-id="proteinMin"
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm"
+                        type="number"
+                        min="0"
+                        placeholder="__Recipes_ProteinMin__"
+                    />
+                    <input
+                        x-id="proteinMax"
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm"
+                        type="number"
+                        min="0"
+                        placeholder="__Recipes_ProteinMax__"
+                    />
+                    <input
+                        x-id="carbsMin"
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm"
+                        type="number"
+                        min="0"
+                        placeholder="__Recipes_CarbsMin__"
+                    />
+                    <input
+                        x-id="carbsMax"
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm"
+                        type="number"
+                        min="0"
+                        placeholder="__Recipes_CarbsMax__"
+                    />
+                    <input
+                        x-id="fatMin"
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm"
+                        type="number"
+                        min="0"
+                        placeholder="__Recipes_FatMin__"
+                    />
+                    <input
+                        x-id="fatMax"
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm"
+                        type="number"
+                        min="0"
+                        placeholder="__Recipes_FatMax__"
+                    />
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <div class="text-sm font-semibold mb-2">__Recipes_MacroPercents__</div>
+                <div class="grid grid-cols-2 gap-2">
+                    <input
+                        x-id="proteinPctMin"
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm"
+                        type="number"
+                        min="0"
+                        max="100"
+                        placeholder="__Recipes_ProteinPctMin__"
+                    />
+                    <input
+                        x-id="proteinPctMax"
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm"
+                        type="number"
+                        min="0"
+                        max="100"
+                        placeholder="__Recipes_ProteinPctMax__"
+                    />
+                    <input
+                        x-id="carbsPctMin"
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm"
+                        type="number"
+                        min="0"
+                        max="100"
+                        placeholder="__Recipes_CarbsPctMin__"
+                    />
+                    <input
+                        x-id="carbsPctMax"
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm"
+                        type="number"
+                        min="0"
+                        max="100"
+                        placeholder="__Recipes_CarbsPctMax__"
+                    />
+                    <input
+                        x-id="fatPctMin"
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm"
+                        type="number"
+                        min="0"
+                        max="100"
+                        placeholder="__Recipes_FatPctMin__"
+                    />
+                    <input
+                        x-id="fatPctMax"
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm"
+                        type="number"
+                        min="0"
+                        max="100"
+                        placeholder="__Recipes_FatPctMax__"
+                    />
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <div class="text-sm font-semibold mb-2">__Recipes_DietLabels__</div>
+                <div x-id="dietLabels" class="flex flex-wrap gap-2"></div>
+            </div>
+
+            <div class="mt-4">
+                <div class="text-sm font-semibold mb-2">__Recipes_HealthLabels__</div>
+                <div x-id="healthLabels" class="flex flex-wrap gap-2"></div>
+            </div>
+
+            <div class="mt-4">
+                <div class="text-sm font-semibold mb-2">__Recipes_ExcludeIngredients__</div>
+                <input
+                    x-id="excluded"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                    type="text"
+                    placeholder="__Recipes_ExcludePlaceholder__"
+                />
+            </div>
+
+            <div class="mt-6 flex flex-col gap-2">
+                <button x-id="search" class="w-full rounded-lg bg-primary text-white px-3 py-2 text-sm font-semibold">
+                    __Recipes_SearchButton__
+                </button>
+                <button x-id="reset" class="w-full rounded-lg border border-primary text-primary px-3 py-2 text-sm font-semibold">
+                    __Recipes_ClearButton__
+                </button>
+            </div>
+
+            <div x-id="apiWarning" class="hidden mt-4 text-xs text-red-600"></div>
+        </section>
+
+        <section class="lg:col-span-2">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+                <div class="text-sm text-gray-600"><span x-id="resultsCount">0</span> __Recipes_ResultCount__</div>
+                <div class="flex flex-wrap gap-2 items-center">
+                    <label class="text-sm font-medium">__Recipes_SortLabel__</label>
+                    <select x-id="sort" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
+                        <option value="best-match">__Recipes_BestMatch__</option>
+                        <option value="protein-pct">__Recipes_HighProtein__</option>
+                        <option value="carbs-pct">__Recipes_LowCarbs__</option>
+                        <option value="calories-low">__Recipes_LowCalories__</option>
+                        <option value="calories-closest">__Recipes_ClosestCalories__</option>
+                    </select>
+                    <button x-id="shuffle" class="rounded-lg border border-gray-300 px-3 py-1 text-sm">__Recipes_ShuffleButton__</button>
+                </div>
+            </div>
+
+            <div x-id="results" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            <div x-id="noResults" class="hidden text-center text-sm text-gray-500 mt-6">__Recipes_NoResults__</div>
+
+            <div class="mt-6 text-center">
+                <button x-id="loadMore" class="hidden rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold">__Recipes_LoadMore__</button>
+            </div>
+        </section>
+    </div>
+
+    <section class="mt-10 bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+        <h2 class="text-lg font-semibold mb-3">__Recipes_DetailTitle__</h2>
+        <div x-id="detail" class="text-sm text-gray-600">__Recipes_SelectHint__</div>
+    </section>
+
+    <section class="mt-10 bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-4">
+            <h2 class="text-lg font-semibold">__Recipes_IngredientListTitle__</h2>
+            <button x-id="transfer" class="rounded-lg bg-primary text-white px-3 py-2 text-sm font-semibold">__Recipes_TransferToCart__</button>
+        </div>
+        <div x-id="ingredientEmpty" class="text-sm text-gray-600">__Recipes_IngredientListEmpty__</div>
+        <div x-id="ingredientList" class="hidden"></div>
+        <div x-id="transferHint" class="hidden mt-4 text-xs text-gray-600"></div>
+    </section>
+
+    <section x-id="productSearchSection" class="hidden mt-10">
+        <h2 class="text-lg font-semibold mb-3">__Recipes_ProductSearchTitle__</h2>
+        <items-filter x-id="productsFilter" emptyquery stores misc></items-filter>
+        <items-list x-id="productsList" json add></items-list>
+    </section>
+
+    %%_templates/_loader.html%%
+</div>
+
+<script src="recipes.js"></script>
+
+%%_templates/_footer.html%%

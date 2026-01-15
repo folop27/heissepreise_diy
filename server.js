@@ -8,6 +8,7 @@ const chokidar = require("chokidar");
 const express = require("express");
 const compression = require("compression");
 const i18n = require("./i18n");
+const axios = require("axios");
 
 function copyItemsToSite(dataDir) {
     const items = analysis.readJSON(`${dataDir}/latest-canonical.json.${analysis.FILE_COMPRESSOR}`).filter((item) => item.name);
@@ -130,6 +131,7 @@ function setupLogging() {
 
     const app = express();
     app.use(compression());
+    app.use(express.json({ limit: "1mb" }));
     app.use(function (req, res, next) {
         if (req.method == "GET") {
             if (req.path == "/") {
@@ -146,6 +148,234 @@ function setupLogging() {
         }
         next();
     });
+
+    const getEdamamConfig = () => {
+        const appId = process.env.EDAMAM_APP_ID;
+        const appKey = process.env.EDAMAM_APP_KEY;
+        if (!appId || !appKey) {
+            throw new Error("Missing EDAMAM_APP_ID or EDAMAM_APP_KEY");
+        }
+        return { appId, appKey };
+    };
+
+    const parseRecipeId = (href) => {
+        if (!href) return null;
+        const match = href.match(/\/api\/recipes\/v2\/([^?]+)/);
+        return match ? match[1] : null;
+    };
+
+    const buildRangeParam = (range) => {
+        if (!range) return null;
+        const min = range.min != null ? range.min : "";
+        const max = range.max != null ? range.max : "";
+        if (min === "" && max === "") return null;
+        return `${min}-${max}`;
+    };
+
+    const unitMap = {
+        g: { unit: "g", factor: 1 },
+        gram: { unit: "g", factor: 1 },
+        grams: { unit: "g", factor: 1 },
+        kg: { unit: "g", factor: 1000 },
+        kilogram: { unit: "g", factor: 1000 },
+        kilograms: { unit: "g", factor: 1000 },
+        oz: { unit: "g", factor: 28.3495 },
+        ounce: { unit: "g", factor: 28.3495 },
+        ounces: { unit: "g", factor: 28.3495 },
+        lb: { unit: "g", factor: 453.592 },
+        pound: { unit: "g", factor: 453.592 },
+        pounds: { unit: "g", factor: 453.592 },
+        ml: { unit: "ml", factor: 1 },
+        milliliter: { unit: "ml", factor: 1 },
+        milliliters: { unit: "ml", factor: 1 },
+        l: { unit: "ml", factor: 1000 },
+        liter: { unit: "ml", factor: 1000 },
+        liters: { unit: "ml", factor: 1000 },
+        tsp: { unit: "ml", factor: 5 },
+        teaspoon: { unit: "ml", factor: 5 },
+        teaspoons: { unit: "ml", factor: 5 },
+        tbsp: { unit: "ml", factor: 15 },
+        tablespoon: { unit: "ml", factor: 15 },
+        tablespoons: { unit: "ml", factor: 15 },
+        cup: { unit: "ml", factor: 240 },
+        cups: { unit: "ml", factor: 240 },
+        pinch: { unit: "pcs", factor: 1 },
+        dash: { unit: "pcs", factor: 1 },
+        clove: { unit: "pcs", factor: 1 },
+        cloves: { unit: "pcs", factor: 1 },
+        piece: { unit: "pcs", factor: 1 },
+        pieces: { unit: "pcs", factor: 1 },
+    };
+
+    const normalizeName = (text) => {
+        if (!text) return "";
+        return text
+            .toLowerCase()
+            .replace(/\\([^)]*\\)/g, " ")
+            .replace(/[^\\p{L}\\p{N}]+/gu, " ")
+            .replace(/\\s+/g, " ")
+            .trim();
+    };
+
+    const normalizeQuantity = (qty) => {
+        if (!Number.isFinite(qty)) return 0;
+        return Math.round(qty * 100) / 100;
+    };
+
+    const normalizeIngredient = (ingredient, scale) => {
+        const quantity = ingredient.quantity ?? 1;
+        const measureKey = ingredient.measure ? ingredient.measure.toLowerCase() : null;
+        const conversion = measureKey ? unitMap[measureKey] : null;
+        let unit = conversion?.unit ?? null;
+        let qty = conversion ? quantity * conversion.factor : null;
+
+        if (!unit && ingredient.weight) {
+            unit = "g";
+            qty = ingredient.weight;
+        }
+
+        if (!unit) {
+            unit = "pcs";
+            qty = quantity;
+        }
+
+        qty *= scale;
+        if (unit === "g" && qty >= 1000) {
+            qty /= 1000;
+            unit = "kg";
+        }
+        if (unit === "ml" && qty >= 1000) {
+            qty /= 1000;
+            unit = "l";
+        }
+
+        return {
+            canonical_name: normalizeName(ingredient.food || ingredient.text),
+            qty: normalizeQuantity(qty),
+            unit,
+            raw_text: ingredient.text,
+            aliases: [ingredient.foodCategory, ingredient.food].filter(Boolean).map((alias) => normalizeName(alias)),
+        };
+    };
+
+    const buildEdamamRecipe = (hit) => {
+        const recipe = hit.recipe;
+        return {
+            id: parseRecipeId(hit._links?.self?.href) || parseRecipeId(recipe.uri) || recipe.uri,
+            label: recipe.label,
+            image: recipe.image,
+            source: recipe.source,
+            url: recipe.url,
+            yield: recipe.yield,
+            calories: recipe.calories,
+            totalNutrients: recipe.totalNutrients,
+            dietLabels: recipe.dietLabels,
+            healthLabels: recipe.healthLabels,
+            ingredientLines: recipe.ingredientLines,
+        };
+    };
+
+    app.post("/recipes/search", async (req, res) => {
+        try {
+            const { appId, appKey } = getEdamamConfig();
+            const { query, calories, macros, dietLabels = [], healthLabels = [], excludedIngredients = [], from = 0, to = 50 } = req.body || {};
+
+            const params = new URLSearchParams({
+                type: "public",
+                app_id: appId,
+                app_key: appKey,
+                q: query && query.length ? query : "recipe",
+                from: String(from),
+                to: String(to),
+            });
+
+            const caloriesRange = buildRangeParam(calories);
+            if (caloriesRange) params.append("calories", caloriesRange);
+
+            const nutrientMap = {
+                protein: "PROCNT",
+                carbs: "CHOCDF",
+                fat: "FAT",
+            };
+
+            if (macros) {
+                Object.keys(nutrientMap).forEach((macro) => {
+                    const range = buildRangeParam(macros[macro]);
+                    if (range) params.append(`nutrients[${nutrientMap[macro]}]`, range);
+                });
+            }
+
+            dietLabels.forEach((label) => params.append("diet", label));
+            healthLabels.forEach((label) => params.append("health", label));
+            excludedIngredients.forEach((item) => params.append("excluded", item));
+
+            const response = await axios.get(`https://api.edamam.com/api/recipes/v2?${params.toString()}`);
+            const hits = response.data.hits.map((hit) => buildEdamamRecipe(hit));
+            res.json({ hits, count: response.data.count });
+        } catch (error) {
+            res.status(500).json({ message: error.message || "Failed to fetch recipes." });
+        }
+    });
+
+    app.get("/recipes/:id", async (req, res) => {
+        try {
+            const { appId, appKey } = getEdamamConfig();
+            const id = req.params.id;
+            const response = await axios.get(`https://api.edamam.com/api/recipes/v2/${id}?type=public&app_id=${appId}&app_key=${appKey}`);
+            const recipe = response.data.recipe;
+            res.json({
+                recipe: {
+                    ...recipe,
+                    id,
+                },
+            });
+        } catch (error) {
+            res.status(500).json({ message: error.message || "Failed to fetch recipe details." });
+        }
+    });
+
+    app.post("/recipes/:id/ingredients/export", async (req, res) => {
+        try {
+            const { appId, appKey } = getEdamamConfig();
+            const id = req.params.id;
+            const desiredServings = Number(req.body?.desiredServings) || 1;
+            const response = await axios.get(`https://api.edamam.com/api/recipes/v2/${id}?type=public&app_id=${appId}&app_key=${appKey}`);
+            const recipe = response.data.recipe;
+            const baseServings = recipe.yield || 1;
+            const scale = desiredServings / baseServings;
+            const items = new Map();
+
+            recipe.ingredients.forEach((ingredient) => {
+                const normalized = normalizeIngredient(ingredient, scale);
+                const key = `${normalized.canonical_name}-${normalized.unit}`;
+                const existing = items.get(key);
+                if (existing) {
+                    existing.qty = normalizeQuantity(existing.qty + normalized.qty);
+                    existing.aliases = [...new Set([...(existing.aliases || []), ...(normalized.aliases || [])])];
+                    existing.raw_text = existing.raw_text || normalized.raw_text;
+                } else {
+                    items.set(key, normalized);
+                }
+            });
+
+            const payloadItems = [...items.values()].map((item) => ({
+                name: item.canonical_name,
+                qty: item.qty,
+                unit: item.unit,
+                raw_text: item.raw_text,
+                search_terms: [item.canonical_name, ...(item.aliases || [])].filter((entry) => entry && entry.length > 0),
+            }));
+
+            res.json({
+                source: "edamam",
+                recipe_ids: [id],
+                items: payloadItems,
+            });
+        } catch (error) {
+            res.status(500).json({ message: error.message || "Failed to export ingredients." });
+        }
+    });
+
     app.use(express.static("site/output"));
     const server = http.createServer(app).listen(port, () => {
         console.log(`App listening on port ${port}`);
