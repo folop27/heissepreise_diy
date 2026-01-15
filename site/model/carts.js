@@ -55,7 +55,10 @@ class Carts extends Model {
             const items = [];
             for (const cartItem of cart.items) {
                 const item = itemsLookup[cartItem.store + cartItem.id];
-                if (item) items.push(item);
+                if (item) {
+                    item.cartQuantity = cartItem.quantity ?? 1;
+                    items.push(item);
+                }
             }
             cart.items = items;
         }
@@ -68,7 +71,7 @@ class Carts extends Model {
             carts.push({
                 name: cart.name,
                 items: cart.items.map((item) => {
-                    return { store: item.store, id: item.id };
+                    return { store: item.store, id: item.id, quantity: item.cartQuantity ?? 1 };
                 }),
             });
         }

@@ -27,6 +27,7 @@ class ItemsList extends View {
         this._remove = getBooleanAttribute(this, "remove");
         this._add = getBooleanAttribute(this, "add");
         this._updown = getBooleanAttribute(this, "updown");
+        this._cart = getBooleanAttribute(this, "cart");
         this._noSort = getBooleanAttribute(this, "nosort");
         const hideSort = this._noSort ? "hidden" : "";
 
@@ -244,6 +245,10 @@ class ItemsList extends View {
                 </td>
                 <td data-label="Aktionen">
                     <span class="action">
+                        <label class="${this._cart ? "mr-2 flex items-center gap-1 text-xs" : "hidden"}">
+                            <span>${__("Cart_Anzahl")}</span>
+                            <input x-id="cartQuantity" type="number" min="1" class="cart-quantity-input" />
+                        </label>
                         <label x-id="chart" class="${this._chart ? "" : "hidden"}">
                             <input x-id="chartCheckbox" type="checkbox" class="hidden peer">
                             <span class="peer-checked:bg-blue-700 btn-action">📈</span>
@@ -381,6 +386,17 @@ class ItemsList extends View {
             elements.down.classList.add("hidden");
         }
 
+        if (this._cart) {
+            elements.cartQuantity.value = item.cartQuantity ?? 1;
+            elements.cartQuantity.addEventListener("change", () => {
+                let newValue = parseInt(elements.cartQuantity.value, 10);
+                if (Number.isNaN(newValue) || newValue < 1) newValue = 1;
+                item.cartQuantity = newValue;
+                elements.cartQuantity.value = newValue;
+                if (this._quantityCallback) this._quantityCallback(item);
+            });
+        }
+
         elements.add.addEventListener("click", () => {
             if (this._addCallback) this._addCallback(item);
         });
@@ -491,6 +507,10 @@ class ItemsList extends View {
 
     set addCallback(callback) {
         this._addCallback = callback;
+    }
+
+    set quantityCallback(callback) {
+        this._quantityCallback = callback;
     }
 
     set removeCallback(callback) {
