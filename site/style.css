@@ -66,6 +66,9 @@ thead > tr {
     @apply border rounded leading-none;
     @apply transition-transform duration-200;
 }
+.cart-quantity-input {
+    @apply w-16 border rounded bg-white px-1 py-0.5 text-right;
+}
 
 /* colors */
 .item.red {

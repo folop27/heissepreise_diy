@@ -1,4 +1,4 @@
-const { getQueryParameter, today } = require("./js/misc");
+const { getQueryParameter, numberToLocale, today } = require("./js/misc");
 const models = require("./model");
 const { Model } = require("./model/model");
 const { View } = require("./views/view");
@@ -9,6 +9,7 @@ const progressBar = new ProgressBar(STORE_KEYS.length);
 const { __ } = require("./browser_i18n");
 
 let carts = null;
+const DEFAULT_CART_NAME = __("Cart_DefaultName");
 
 class CartModel extends Model {
     constructor(cart, linked) {
@@ -36,6 +37,7 @@ class CartHeader extends View {
             <h1 class="text-2xl font-bold pb-2 pt-8 text-center">
                 <span x-id="name"></span>
             </h1>
+            <div x-id="total" class="text-center text-sm text-gray-700"></div>
             <a x-id="share" class="hidden cursor-pointer font-bold text-sm text-primary hover:underline block text-center mt-3">${__(
                 "Cart_Teilen"
             )}</a>
@@ -77,6 +79,12 @@ class CartHeader extends View {
         const cart = this.model.cart;
         const elements = this.elements;
         elements.name.innerText = __("Cart_Warenkorb {{name}}", { name: cart.name });
+        const total = cart.items.reduce((sum, item) => {
+            const price = item.priceHistory?.[0]?.price ?? item.price ?? 0;
+            const quantity = item.cartQuantity ?? 1;
+            return sum + price * quantity;
+        }, 0);
+        elements.total.innerText = `${__("Cart_Gesamtsumme")}: € ${numberToLocale(total)}`;
         if (this.model.linked) {
             elements.save.classList.remove("hidden");
         } else {
@@ -94,13 +102,18 @@ customElements.define("cart-header", CartHeader);
 function loadCart() {
     let cart = null;
     let linked = false;
-    const cartName = getQueryParameter("name");
+    const cartName = getQueryParameter("name") || localStorage.getItem("activeCartName") || DEFAULT_CART_NAME;
     if (cartName) {
         for (const c of carts) {
             if (c.name == cartName) {
                 cart = c;
                 break;
             }
+        }
+        if (!cart && cartName === DEFAULT_CART_NAME) {
+            cart = { name: cartName, items: [] };
+            carts.push(cart);
+            models.carts.save();
         }
     }
 
@@ -121,6 +134,10 @@ function loadCart() {
     if (cart == null) {
         alert(__("Cart_Warenkorb '{{name}}' existiert nicht.", { name: cartName }));
         location.href = "carts.html";
+    }
+
+    if (!linked && cart) {
+        localStorage.setItem("activeCartName", cart.name);
     }
 
     return new CartModel(cart, linked);
@@ -151,9 +168,16 @@ function loadCart() {
         cartList.classList.remove("hidden");
     }
 
-    cartList.removeCallback = (item) => models.carts.save();
+    cartList.removeCallback = (item) => {
+        models.carts.save();
+        cartHeader.render();
+    };
     cartList.upCallback = (item) => models.carts.save();
     cartList.downCallback = (item) => models.carts.save();
+    cartList.quantityCallback = (item) => {
+        models.carts.save();
+        cartHeader.render();
+    };
 
     const productsFilter = elements.productsFilter;
     const productsList = elements.productsList;
@@ -163,11 +187,18 @@ function loadCart() {
     }
 
     productsList.addCallback = (item) => {
-        cart.items.push(item);
+        const existing = cart.items.find((cartItem) => cartItem.store === item.store && cartItem.id === item.id);
+        if (existing) {
+            existing.cartQuantity = (existing.cartQuantity ?? 1) + 1;
+        } else {
+            item.cartQuantity = 1;
+            cart.items.push(item);
+        }
         models.carts.save();
         cartFilter.filter();
         cartFilter.classList.remove("hidden");
         cartList.classList.remove("hidden");
+        cartHeader.render();
     };
 
     const itemsFilter = cartFilter;

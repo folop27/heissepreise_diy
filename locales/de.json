@@ -8,6 +8,7 @@
     "Alle Angaben ohne Gewähr, Irrtümer vorbehalten.": "Alle Angaben ohne Gewähr, Irrtümer vorbehalten.",
     "Markennamen und Warenzeichen sind Eigentum der jeweiligen Inhaber.": "Markennamen und Warenzeichen sind Eigentum der jeweiligen Inhaber.",
     "Suche": "Suche",
+    "Warenkorb": "Warenkorb",
     "Preisänderungen": "Preisänderungen",
     "Warenkörbe": "Warenkörbe",
 
@@ -80,6 +81,9 @@
 
     "Cart_Teilen": "Teilen",
     "Cart_Speichern": "Speichern",
+    "Cart_DefaultName": "Mein Warenkorb",
+    "Cart_Anzahl": "Anzahl",
+    "Cart_Gesamtsumme": "Gesamtsumme",
     "Cart_Warenkorb {{name}}": "Warenkorb {{name}}",
     "Cart_Warenkorb '{{name}}' existiert bereits. Bitte einen anderen Namen für den zu speichernden Warenkorb eingeben": "Warenkorb '{{name}}' existiert bereits. Bitte einen anderen Namen für den zu speichernden Warenkorb eingeben",
     "Cart_Warenkorb '{{name}}' existiert nicht.": "Warenkorb '{{name}}' existiert nicht.",

@@ -8,6 +8,7 @@
     "Alle Angaben ohne Gewähr, Irrtümer vorbehalten.": "Veškeré informace jsou poskytovány bez záruky, chyby vyhrazeny.",
     "Markennamen und Warenzeichen sind Eigentum der jeweiligen Inhaber.": "Názvy značek a ochranné známky jsou majetkem příslušných vlastníků.",
     "Suche": "Vyhledávání",
+    "Warenkorb": "Košík",
     "Preisänderungen": "Změny cen",
     "Warenkörbe": "Nákupní vozíky",
 
@@ -80,6 +81,9 @@
 
     "Cart_Teilen": "Detail",
     "Cart_Speichern": "Uložit",
+    "Cart_DefaultName": "Můj košík",
+    "Cart_Anzahl": "Množství",
+    "Cart_Gesamtsumme": "Celkem",
     "Cart_Warenkorb {{name}}": "Nákupní košík {{name}}",
     "Cart_Warenkorb '{{name}}' existiert bereits. Bitte einen anderen Namen für den zu speichernden Warenkorb eingeben": "Nákupní košík '{{name}}' již existuje. Zadejte prosím jiný název",
     "Cart_Warenkorb '{{name}}' existiert nicht.": "Nákupní košík '{{name}}' neexistuje.",
