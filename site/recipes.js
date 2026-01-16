@@ -411,7 +411,9 @@ const renderDetail = () => {
             <ul class="list-disc list-inside text-sm text-gray-700">
                 ${
                     ingredientPreview.length
-                        ? ingredientPreview.map((item) => `<li>${numberToLocale(item.qty)} ${item.unit} ${item.name}</li>`).join("")
+                        ? ingredientPreview
+                              .map((item) => `<li>${numberToLocale(item.qty)} ${item.unit} ${item.display_name || item.name}</li>`)
+                              .join("")
                         : `<li>${__("Recipes_NoScaledIngredients")}</li>`
                 }
             </ul>
@@ -447,6 +449,7 @@ const addToIngredientList = (payload) => {
         } else {
             updated.push({
                 name: item.name,
+                display_name: item.display_name || item.name,
                 qty: item.qty,
                 unit: item.unit,
                 raw_text: item.raw_text,
@@ -499,7 +502,7 @@ const renderIngredientList = () => {
                         <tr class="border-t">
                             <td class="py-2 pr-2">${numberToLocale(Math.round(item.qty * 100) / 100)}</td>
                             <td class="py-2 pr-2">${item.unit}</td>
-                            <td class="py-2 pr-2">${item.name}</td>
+                            <td class="py-2 pr-2">${item.display_name || item.name}</td>
                             <td class="py-2 text-right">
                                 <button data-index="${index}" data-action="search" class="rounded-lg border border-gray-300 px-2 py-1 text-xs">${__(
                                 "Recipes_SearchProducts"

@@ -235,7 +235,7 @@ function setupLogging() {
         }
 
         if (!unit) {
-            unit = "pcs";
+            unit = measureKey || "pcs";
             qty = quantity;
         }
 
@@ -249,12 +249,21 @@ function setupLogging() {
             unit = "l";
         }
 
+        const preferredName = ingredient.food || ingredient.text || "";
+        const canonicalFromFood = normalizeName(ingredient.food);
+        const canonicalFromText = normalizeName(ingredient.text);
+        const canonicalName = canonicalFromFood || canonicalFromText || preferredName.toLowerCase().trim();
+
         return {
-            canonical_name: normalizeName(ingredient.food || ingredient.text),
+            canonical_name: canonicalName,
+            display_name: preferredName,
             qty: normalizeQuantity(qty),
             unit,
             raw_text: ingredient.text,
-            aliases: [ingredient.foodCategory, ingredient.food].filter(Boolean).map((alias) => normalizeName(alias)),
+            aliases: [ingredient.foodCategory, ingredient.food, ingredient.text]
+                .filter(Boolean)
+                .map((alias) => normalizeName(alias))
+                .filter((alias) => alias.length > 0),
         };
     };
 
@@ -360,10 +369,11 @@ function setupLogging() {
 
             const payloadItems = [...items.values()].map((item) => ({
                 name: item.canonical_name,
+                display_name: item.display_name,
                 qty: item.qty,
                 unit: item.unit,
                 raw_text: item.raw_text,
-                search_terms: [item.canonical_name, ...(item.aliases || [])].filter((entry) => entry && entry.length > 0),
+                search_terms: [item.canonical_name, item.display_name, ...(item.aliases || [])].filter((entry) => entry && entry.length > 0),
             }));
 
             res.json({
